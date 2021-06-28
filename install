@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# This script installs the new Tectonic CLI:
+#
+#     curl https://install.tectonic.io | bash
+#
+# Note: this script is inspired by: https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
+#
+
+if test -z "$BASH_VERSION"; then
+  echo "Please run this script using bash, not sh or any other shell." >&2
+  exit 1
+fi
+
+# We wrap the entire script in a big function which we only call at the very end, in order to
+# protect against the possibility of the connection dying mid-script. This protects us against
+# the problem described in this blog post:
+#   http://blog.existentialize.com/dont-pipe-to-your-shell.html
+_() {
+
+  DIR=~/.tectonic
+
+  YELLOW="\033[0;33m"
+  NC='\033[0m'
+
+  cleanup () {
+    # Cleanup previous versions.
+    rm -rf $DIR
+  }
+
+  check() {
+    if ! [ -x "$(command -v git)" ]; then
+      echo 'Error: Git is not installed (https://git-scm.com/)' >&2
+      exit 1
+    fi
+    if [ "$(command -v yarn)" ]; then
+      PKG_CMD="yarn"
+    elif [ "$(command -v npm)" ]; then
+      PKG_CMD="npm"
+    else
+      echo 'Error: Either yarn or npm must be installed (https://www.npmjs.com/)' >&2
+      exit 1
+    fi
+    if ! [ -x "$(command -v gcloud)" ]; then
+      echo 'Error: Google Cloud SDK (gcloud) is not installed (https://cloud.google.com/sdk/docs/install)' >&2
+      exit 1
+    fi
+    if ! [ -x "$(command -v kubectl)" ]; then
+      echo 'Error: Kubernetes CLI (kubectl) is not installed (https://kubernetes.io/docs/tasks/tools/install-kubectl/)' >&2
+      exit 1
+    fi
+  }
+
+  install () {
+    git clone --quiet https://github.com/bedrockio/tectonic-cli.git $DIR > /dev/null
+    pushd $DIR > /dev/null
+    $PKG_CMD install > /dev/null 2>&1
+    popd
+  }
+
+  PROFILE_PATH=""
+
+  try_profile()
+  {
+    if [ -f "$1" ]; then
+      grep -qxF 'export PATH="$HOME/.tectonic/bin:$PATH"' $1 || echo 'export PATH="$HOME/.tectonic/bin:$PATH"' >> $1
+      PROFILE_PATH=$1
+    fi
+  }
+
+  try_fish_profile()
+  {
+    if [ -f "$1" ]; then
+      grep -qxF 'set -gx PATH $PATH ~/.tectonic/bin' $1 || echo 'set -gx PATH $PATH ~/.tectonic/bin' >> $1
+      PROFILE_PATH=$1
+    fi
+  }
+
+  link () {
+    # Attempt to add to the following shell profiles
+    # if the files exist and are not already linked.
+    try_profile $HOME/.bashrc
+    try_profile $HOME/.bash_profile
+    try_profile $HOME/.zshenv
+    try_profile $HOME/.zshrc
+    try_fish_profile $HOME/.config/fish/config.fish
+  }
+
+
+  echo -e "${YELLOW}Installing Tectonic...${NC}"
+
+  cleanup
+  check
+  install
+  link
+
+  if [ -f /System/Library/Sounds/Glass.aiff ]; then
+    afplay /System/Library/Sounds/Glass.aiff 2> /dev/null
+  fi
+
+  echo ""
+  echo ""
+  echo " _____ _____ _____ _____ _____ _____ . _____ "
+  echo "   |   |____ |       |   |   | |   | | |     "
+  echo "   |   |____ |____   |   |___| |   | | |____ "
+  echo ""
+  echo ""
+
+  cat <<-EOM
+
+Installation completed. In order to update your \$PATH open a new shell or run:
+
+  . $PROFILE_PATH
+
+Then, to create a new Tectonic deployment in your project run:
+
+  tectonic create
+
+EOM
+
+}
+
+_ "$0" "$@"

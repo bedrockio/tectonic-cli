@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+
+/* eslint-disable-next-line no-global-assign */
+require = require('esm')(module);
+
+const path = require('path');
+const kleur = require('kleur');
+const { program } = require('commander');
+const { camelCase } = require('lodash');
+const { promptFill } = require('../src/util/prompt');
+const { version } = require('../package.json');
+const descriptor = require('../command.json');
+const cloud = require('../src/cloud');
+
+program.version(version);
+addCommand(program, descriptor);
+
+function addCommand(command, descriptor) {
+  const { description, options = [], arguments: args = [] } = descriptor;
+  command.description(description);
+  command.on('--help', () => {
+    console.log('');
+  });
+  if (args.length) {
+    command.arguments(
+      args
+        .map((arg) => {
+          const { name, required, prompt } = arg;
+          return required && !prompt ? `<${name}>` : `[${name}]`;
+        })
+        .join(' ')
+    );
+  }
+  for (let option of options) {
+    const { name, type, short, description, default: def } = option;
+    const opts = [];
+    if (short) {
+      opts.push(`-${short}`);
+    }
+    if (name) {
+      let l = `--${name}`;
+      if (type && type !== 'boolean') {
+        l += ` <${type}>`;
+      }
+      opts.push(l);
+    }
+    command.option(opts.join(', '), description, def);
+  }
+  for (let sub of descriptor.commands || []) {
+    sub.parent = descriptor;
+    const { name } = sub;
+    const subcommand = command.command(name);
+    subcommand.storeOptionsAsProperties(false);
+    addCommand(subcommand, sub);
+    const handler = getHandler(sub);
+    if (handler) {
+      subcommand.action(async () => {
+        let { ...options } = gatherOptions(subcommand);
+        if (sub.arguments) {
+          subcommand.args.forEach((arg, i) => {
+            if (sub.arguments[i]) {
+              const { name } = sub.arguments[i];
+              options[name] = arg;
+            } else {
+              console.info(kleur.yellow(`Warning: "${arg}" argument not used`));
+            }
+          });
+        }
+        await promptFill(options, sub.arguments);
+        await promptFill(options, sub.options);
+        await handler(options, sub);
+      });
+    }
+  }
+}
+
+function gatherOptions(command) {
+  const options = {};
+  while (command && command !== program) {
+    Object.assign(options, command.opts());
+    command = command.parent;
+  }
+  return options;
+}
+
+function getHandler(descriptor) {
+  const dirs = getHandlerPath(descriptor);
+  try {
+    // Prefer named functions in entrypoints to helper files that may share the same name.
+    const name = descriptor.functionName || camelCase(descriptor.name);
+    const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
+    return mod[name] || mod.default;
+  } catch(err) {
+    if (err.code === 'MODULE_NOT_FOUND') {
+      return require(path.resolve(__dirname, '../src', ...dirs)).default;
+    } else {
+      throw err;
+    }
+  }
+}
+
+function getHandlerPath(descriptor) {
+  const handlerPath = [];
+  while (descriptor.parent) {
+    handlerPath.unshift(descriptor.name);
+    descriptor = descriptor.parent;
+  }
+  return handlerPath;
+}
+
+program.parse(process.argv);

@@ -1,0 +1,16 @@
+{
+  "env": {
+    "node": true,
+    "browser": true
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "extends": [
+    "plugin:bedrock/recommended",
+    "plugin:bedrock/jest"
+  ],
+  "rules": {
+    "no-console": "off"
+  }
+}
