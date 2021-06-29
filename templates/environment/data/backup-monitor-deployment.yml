@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-monitor-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backup-monitor
+  template:
+    metadata:
+      labels:
+        app: backup-monitor
+    spec:
+      containers:
+        - image: dominiek/backup-monitor
+          imagePullPolicy: Always
+          name: main
+          env:
+            - name: GS_BUCKETS
+              value: "<BUCKET_PREFIX>-uploads <BUCKET_PREFIX>-mongodb-backups"
+            - name: POSTMARK_API_KEY
+              value: "abc"
+            - name: POSTMARK_FROM
+              value: "<ADMIN_EMAIL>"
+            - name: EMAIL_ALERT
+              value: "<ADMIN_EMAIL>"
+            - name: EMAIL_HEALTH_CHECK
+              value: "<ADMIN_EMAIL>"
+            - name: ENVIRONMENT
+              value: "<ENV_NAME>"

@@ -1,0 +1,22 @@
+{
+  "gcloud": {
+    "envName": "<ENV_NAME>",
+    "bucketPrefix": "<PROJECT>-tectonic",
+    "project": "<PROJECT>",
+    "computeZone": "",
+    "kubernetes": {
+      "clusterName": "tectonic-cluster-1",
+      "nodePoolCount": 1,
+      "minNodeCount": 1,
+      "maxNodeCount": 3,
+      "machineType": "n2-standard-2"
+    },
+    "services": [],
+    "ingresses": ["tectonic-api", "tectonic-web"],
+    "label": "app",
+    "domain": "<DOMAIN>",
+    "appUrl": "<APP_URL>",
+    "apiUrl": "<API_URL>",
+    "adminEmail": "<ADMIN_EMAIL>"
+  }
+}

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+spec:
+  strategy:
+    type: RollingUpdate # New pods are added gradually, and old pods are terminated gradually
+    rollingUpdate:
+      maxSurge: 2 # The number of pods that can be created above the desired amount of pods during an update
+      maxUnavailable: 2 # The number of pods that can be unavailable during the update process
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - image: bedrockio/tectonic-api
+          imagePullPolicy: Always
+          name: main
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+          env:
+            - name: ENV_NAME
+              value: <ENV_NAME>
+            - name: NODE_ENV
+              value: production
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/tectonic_<ENV_NAME>"
+            - name: ELASTICSEARCH_URI
+              value: "http://elasticsearch:9200"
+            - name: ADMIN_EMAIL
+              value: "<ADMIN_EMAIL>"
+            - name: ADMIN_PASSWORD
+              value: "<ADMIN_PASSWORD>"
+            - name: JWT_SECRET
+              value: "<JWT_SECRET>"
+            - name: APPLICATION_JWT_SECRET
+              value: "<APPLICATION_JWT_SECRET>"
+            - name: ACCESS_JWT_SECRET
+              value: "<ACCESS_JWT_SECRET>"
+            - name: API_URL
+              value: "<API_URL>"
+            - name: APP_URL
+              value: "<APP_URL>"
+            - name: BATCHES_STORE
+              value: gcs
+            - name: BATCHES_GCS_BUCKET
+              value: <BUCKET_PREFIX>-batches
+            - name: LOG_LEVEL
+              value: debug
+          ports:
+            - name: http-server
+              containerPort: 3300
+          volumeMounts:
+            - name: cache
+              mountPath: /service/data
+          # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+          readinessProbe: # readiness probes to know when a container is ready to start accepting traffic
+            initialDelaySeconds: 5 # Number of seconds after the container has started before liveness or readiness probes are initiated. Defaults to 0 seconds.
+            periodSeconds: 5 # How often (in seconds) to perform the probe. Default to 10 seconds
+            timeoutSeconds: 2 # Number of seconds after which the probe times out. Defaults to 1 second
+            failureThreshold: 2 # When a probe fails, Kubernetes will try failureThreshold times before giving up.
+            httpGet:
+              path: /1/status/mongodb
+              port: 3300
+          livenessProbe: # liveness probes to know when to restart a container
+            httpGet:
+              path: /1/status/mongodb
+              port: 3300
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
+      volumes:
+        - name: cache
+          emptyDir: {}

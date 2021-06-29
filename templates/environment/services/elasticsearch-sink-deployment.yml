@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-sink-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch-sink
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-sink
+    spec:
+      containers:
+        - image: bedrockio/tectonic-elasticsearch-sink
+          imagePullPolicy: Always
+          name: elasticsearch-sink
+          env:
+            - name: ENV_NAME
+              value: "<ENV_NAME>"
+            - name: NODE_ENV
+              value: "production"
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/tectonic_<ENV_NAME>"
+            - name: ELASTICSEARCH_URI
+              value: "http://elasticsearch:9200"
+            - name: PUBSUB_RAW_EVENTS_TOPIC
+              value: "raw-events"
+            - name: PUBSUB_RAW_EVENTS_SUB_ELASTICSEARCH
+              value: "raw-events-sub-elasticsearch"
+          volumeMounts:
+            - name: cache
+              mountPath: /workdir/data
+      volumes:
+        - name: cache
+          emptyDir: {}

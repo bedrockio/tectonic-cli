@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bucket-storage-backups-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bucket-storage-backups
+  template:
+    metadata:
+      labels:
+        app: bucket-storage-backups
+    spec:
+      containers:
+        - image: dominiek/bucket-storage-backups
+          imagePullPolicy: Always
+          name: main
+          env:
+            - name: SOURCE_GS_BUCKET
+              value: "<BUCKET_PREFIX>-uploads"
+            - name: DESTINATION_GS_BUCKET
+              value: "<BUCKET_PREFIX>-uploads-backup"

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cli-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cli
+  template:
+    metadata:
+      labels:
+        app: cli
+    spec:
+      containers:
+        - image: bedrockio/tectonic-cli
+          imagePullPolicy: Always
+          name: cli
+          env:
+            - name: ENV_NAME
+              value: <ENV_NAME>
+            - name: NODE_ENV
+              value: production
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/tectonic_<ENV_NAME>"
+            - name: ELASTICSEARCH_URI
+              value: "http://elasticsearch:9200"
+            - name: ADMIN_EMAIL
+              value: "<ADMIN_EMAIL>"
+            - name: ADMIN_PASSWORD
+              value: "<ADMIN_PASSWORD>"
+            - name: JWT_SECRET
+              value: "<JWT_SECRET>"
+            - name: APPLICATION_JWT_SECRET
+              value: "<APPLICATION_JWT_SECRET>"
+            - name: ACCESS_JWT_SECRET
+              value: "<ACCESS_JWT_SECRET>"
+            - name: API_URL
+              value: "<API_URL>"
+            - name: APP_URL
+              value: "<APP_URL>"
+            - name: BATCHES_STORE
+              value: gcs
+            - name: BATCHES_GCS_BUCKET
+              value: <BUCKET_PREFIX>-batches
+            - name: LOG_LEVEL
+              value: debug
+          volumeMounts:
+            - name: cli-cache
+              mountPath: /workdir/data
+      volumes:
+        - name: cli-cache
+          emptyDir: {}

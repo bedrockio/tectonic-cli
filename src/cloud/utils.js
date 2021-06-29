@@ -181,7 +181,9 @@ export async function getAllSecretsPrompt() {
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (await getAllSecrets())
+    choices: (
+      await getAllSecrets()
+    )
       .map(({ metadata }) => {
         if (!metadata || !metadata.name) return false;
         const { name } = metadata;

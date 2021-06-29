@@ -1,6 +1,5 @@
 import kleur from 'kleur';
 import { kebabCase, snakeCase, startCase } from 'lodash';
-import { cloneRepository, initializeRepository } from '../util/git';
 import { queueTask, runTasks } from '../util/tasks';
 import { removeFiles } from '../util/file';
 import { replaceAll } from '../util/replace';
@@ -8,42 +7,41 @@ import { exec } from '../util/shell';
 import { randomBytes } from 'crypto';
 import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
 
-const BEDROCK_REPO = 'bedrockio/bedrock-core';
-
 const COMPLETE_MESSAGE = `
   Installation Completed!
-  New Bedrock project has been created. To run the stack in Docker:
+  New Tectonic Deployment environment has been created. To run the stack in Docker:
 
-  docker-compose up
+  tectonic up
 `;
 
 export default async function create(options) {
-  const { project, domain = '', repository = '', address = '', 'admin-password': adminPassword = '' } = options;
+  const {
+    project,
+    environment = 'staging',
+    domain = '',
+    'admin-email': adminEmail = '',
+    'admin-password': adminPassword = '',
+  } = options;
 
-  if (!project) {
-    throw new Error('Project name required');
-  }
+  if (!project) throw new Error('Project name required');
+  if (!environment) throw new Error('Environment required');
+  if (!domain) throw new Error('Domain required');
+  if (!adminEmail) throw new Error('adminEmail required');
 
   // "project" will accept any casing
   const kebab = kebabCase(project);
   const under = snakeCase(project);
 
-  queueTask('Clone Repository', async () => {
-    await cloneRepository(kebab, BEDROCK_REPO);
-    process.chdir(kebab);
-  });
+  queueTask('Create Environment', async () => {});
 
-  queueTask('Configure', async () => {
-
+  queueTask('Configure Environment', async () => {
     const appName = startCase(project);
     const JWT_SECRET = await exec('openssl rand -base64 30');
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
     await replaceAll('*.{js,md,yml,tf,conf,json,env}', (str) => {
-      str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
       str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${JWT_SECRET}`);
       str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
-      str = str.replace(/bedrockio\/bedrock-core/g, repository);
       str = str.replace(/bedrock-foundation/g, kebab);
       str = str.replace(/bedrock\.foundation/g, domain);
       str = str.replace(/bedrock-core-services/g, `${kebab}-services`);
@@ -67,21 +65,7 @@ export default async function create(options) {
     await removeFiles('.git');
   });
 
-  queueTask('Install Dependencies', async () => {
-
-    queueTask('API', async () => {
-      await exec('yarn install --cwd=services/api');
-    });
-
-    queueTask('Web', async () => {
-      await exec('yarn install --cwd=services/web');
-    });
-
-  });
-
-  queueTask('Finalizing', async () => {
-    await initializeRepository(kebab, repository);
-  });
+  queueTask('Finalizing', async () => {});
 
   await runTasks();
 
