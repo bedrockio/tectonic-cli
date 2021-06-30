@@ -1,20 +1,15 @@
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur';
-import { assertBedrockRoot } from '../util/dir';
+import { assertTectonicRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { setGCloudConfig, checkConfig } from './authorize';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
-import {
-  readConfig,
-  checkKubectlVersion,
-  getEnvironmentPrompt,
-  getServicesPrompt,
-} from './utils';
+import { readConfig, checkKubectlVersion, getEnvironmentPrompt, getServicesPrompt } from './utils';
 import { bootstrapProjectEnvironment } from './bootstrap';
 
 export async function authorize(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
@@ -22,23 +17,24 @@ export async function authorize(options) {
 }
 
 export async function account(options) {
-
   try {
     const auth = JSON.parse(await exec('gcloud auth list --format json'));
 
-    const name = options.name || (await prompt({
-      message: 'Select Account',
-      type: 'select',
-      choices: auth.map(({ account, status }) => {
-        const active = status === 'ACTIVE' ? ' (active)' : '';
-        return {
-          title: `${account}${reset(gray(active))}`,
-          value: account,
-        };
-      }),
-    }));
+    const name =
+      options.name ||
+      (await prompt({
+        message: 'Select Account',
+        type: 'select',
+        choices: auth.map(({ account, status }) => {
+          const active = status === 'ACTIVE' ? ' (active)' : '';
+          return {
+            title: `${account}${reset(gray(active))}`,
+            value: account,
+          };
+        }),
+      }));
 
-    const active = auth.find(({ status } ) => {
+    const active = auth.find(({ status }) => {
       return status === 'ACTIVE';
     });
     if (!active || active.account !== name) {
@@ -47,12 +43,10 @@ export async function account(options) {
     } else {
       console.info(yellow('No changes'));
     }
-
   } catch (e) {
     console.info(red('Could not get accounts from "gcloud config configuration list"'));
     return;
   }
-
 }
 
 export async function login() {
@@ -75,7 +69,7 @@ export async function login() {
 }
 
 export async function status(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
   await checkKubectlVersion();
 
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -100,16 +94,16 @@ export async function status(options) {
 }
 
 export async function rollout(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
   await checkKubectlVersion();
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
-  await checkConfig(environment, config);
+  //await checkConfig(environment, config);
 
   if (!service) {
-    const services = await getServicesPrompt();
+    const services = await getServicesPrompt(environment);
     if (!services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
@@ -123,7 +117,7 @@ export async function rollout(options) {
 }
 
 export async function remove(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -131,7 +125,7 @@ export async function remove(options) {
   await checkConfig(environment, config);
 
   if (!service) {
-    const services = await getServicesPrompt();
+    const services = await getServicesPrompt(environment);
     if (!services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
@@ -157,7 +151,7 @@ async function showDeploymentInfo(service, subservice) {
 }
 
 export async function info(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
   await checkKubectlVersion();
 
   const { service, subservice } = options;
@@ -166,7 +160,7 @@ export async function info(options) {
   await checkConfig(environment, config);
 
   if (!service) {
-    const services = await getServicesPrompt();
+    const services = await getServicesPrompt(environment);
     if (!services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
@@ -180,7 +174,7 @@ export async function info(options) {
 }
 
 export async function shell(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -222,7 +216,7 @@ export async function shell(options) {
 }
 
 export async function logs(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
@@ -232,7 +226,7 @@ export async function logs(options) {
   let service = options.service;
   let subservice = options.subservice;
   if (!service) {
-    [service, subservice] = await getServicesPrompt('select');
+    [service, subservice] = await getServicesPrompt(environment, 'select');
   }
 
   let labelName = service;
@@ -257,7 +251,7 @@ export async function logs(options) {
 }
 
 export async function bootstrap(options) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);

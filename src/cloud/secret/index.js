@@ -4,7 +4,7 @@ import { red, green, yellow } from 'kleur';
 import { exit } from '../../util/exit';
 import { exec, execSyncInherit } from '../../util/shell';
 import { prompt } from '../../util/prompt';
-import { assertBedrockRoot } from '../../util/dir';
+import { assertTectonicRoot } from '../../util/dir';
 import { getSecretsDirectory } from '../utils';
 import { checkConfig } from '../authorize';
 import { readConfig, getEnvironmentPrompt, getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
@@ -26,7 +26,7 @@ export async function secretDelete(options) {
 }
 
 export async function secret(options, subcommand) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
@@ -113,7 +113,7 @@ export async function getSecret(environment, secretName) {
 }
 
 export async function setSecret(environment, secretName, confirmPrompt = true) {
-  const secretJoinedPath = path.join('deployment', 'environments', environment, 'secrets', `${secretName}.conf`);
+  const secretJoinedPath = path.join('environments', environment, 'secrets', `${secretName}.conf`);
   const secretFilePath = path.resolve(secretJoinedPath);
 
   if (existsSync(secretFilePath)) {

@@ -8,7 +8,7 @@ import { exit } from '../util/exit';
 import { exec } from '../util/shell';
 
 function getConfigFilePath(environment) {
-  return path.resolve('deployment', 'environments', environment, 'config.json');
+  return path.resolve('environments', environment, 'config.json');
 }
 
 export function readConfig(environment) {
@@ -30,7 +30,7 @@ export function writeConfig(environment, config) {
 }
 
 export function getServiceFilePath(environment, filename) {
-  return path.resolve('deployment', 'environments', environment, 'services', filename);
+  return path.resolve('environments', environment, 'services', filename);
 }
 
 export function readServiceYaml(environment, filename) {
@@ -73,11 +73,11 @@ function getDirectories(folder) {
 }
 
 export function getEnvironments() {
-  return getDirectories(path.resolve('deployment', 'environments')).reverse();
+  return getDirectories(path.resolve('environments')).reverse();
 }
 
 export function getSecretsDirectory(environment) {
-  return path.resolve('deployment', 'environments', environment, 'secrets');
+  return path.resolve('environments', environment, 'secrets');
 }
 
 export async function getEnvironmentPrompt() {
@@ -90,23 +90,18 @@ export async function getEnvironmentPrompt() {
   });
 }
 
-function getServices() {
+function getTectonicServices(environment) {
   const services = [];
-  const servicesFolders = getDirectories('services');
-  for (const serviceFolder of servicesFolders) {
-    for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
-      if (file == 'Dockerfile') {
-        services.push([serviceFolder.toString(), '']);
-      } else if (file.startsWith('Dockerfile.')) {
-        services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
-      }
+  for (const file of fs.readdirSync(path.resolve('environments', environment, 'services'))) {
+    if (file.endsWith('deployment.yml')) {
+      services.push([file.slice(0, -15), '']);
     }
   }
   return services;
 }
 
-export async function getServicesPrompt(type = 'multiselect') {
-  const services = getServices();
+export async function getServicesPrompt(environment, type = 'multiselect') {
+  const services = getTectonicServices(environment);
   return await prompt({
     type,
     ...(type == 'multiselect' && {

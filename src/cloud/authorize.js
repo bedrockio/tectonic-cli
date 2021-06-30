@@ -98,7 +98,7 @@ async function checkGCloudConfig(environment, options = {}) {
 }
 
 async function checkSecrets(environment) {
-  const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
+  const secretsDir = path.resolve('environments', environment, 'secrets');
   if (fs.existsSync(secretsDir)) {
     const secretFilesLS = await exec(`ls ${secretsDir}`);
     const secretFiles = secretFilesLS.split('\n').filter((file) => file.endsWith('.conf'));
