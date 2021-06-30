@@ -3,7 +3,7 @@ import kleur from 'kleur';
 import { prompt } from '../../util/prompt';
 import { exec, execSyncInherit, withDir } from '../../util/shell';
 import { exit } from '../../util/exit';
-import { assertBedrockRoot } from '../../util/dir';
+import { assertTectonicRoot } from '../../util/dir';
 import { checkGCloudProject } from '../authorize';
 import { readConfig, getEnvironmentPrompt } from '../utils';
 
@@ -32,7 +32,7 @@ export async function checkTerraformCommand() {
 }
 
 async function terraform(options, command) {
-  await assertBedrockRoot();
+  await assertTectonicRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
@@ -55,7 +55,7 @@ async function plan(options, planFile) {
 }
 
 export async function provisionTerraform(environment, terraform, options) {
-  await withDir(path.resolve('deployment', 'environments', environment, 'provisioning'), async () => {
+  await withDir(path.resolve('environments', environment, 'provisioning'), async () => {
     const { project, computeZone, envName, bucketPrefix } = options;
     const region = computeZone.slice(0, -2);
 

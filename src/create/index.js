@@ -66,7 +66,7 @@ export default async function create(options) {
     const APPLICATION_JWT_SECRET = await exec('openssl rand -base64 30');
     const ACCESS_JWT_SECRET = await exec('openssl rand -base64 30');
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
-    const BUCKET_PREFIX = `${project}-tectonic`;
+    const BUCKET_PREFIX = `${project}-tectonic-${environment}`;
     const APP_URL = `https://${domain}`;
     const API_URL = `https://api.${domain}`;
 

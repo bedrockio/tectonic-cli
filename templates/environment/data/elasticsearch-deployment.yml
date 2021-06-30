@@ -73,5 +73,5 @@ spec:
       volumes:
         - name: elasticsearch-persistent-storage
           gcePersistentDisk:
-            pdName: tectonic-elasticsearch-disk
+            pdName: tectonic-elasticsearch-<ENV_NAME>-disk
             fsType: ext4

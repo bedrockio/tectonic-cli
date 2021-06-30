@@ -25,5 +25,5 @@ spec:
       volumes:
         - name: mongo-persistent-storage
           gcePersistentDisk:
-            pdName: tectonic-mongo-disk
+            pdName: tectonic-mongo-<ENV_NAME>-disk
             fsType: ext4

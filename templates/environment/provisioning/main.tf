@@ -34,7 +34,7 @@ module "gcp-buckets" {
 
 resource "google_compute_disk" "tectonic_mongo_disk" {
   project = var.project
-  name    = "tectonic-mongo-disk"
+  name    = "tectonic-mongo-${local.global.environment}-disk"
   type    = "pd-ssd"
   zone    = local.global.location
   size    = 300
@@ -42,7 +42,7 @@ resource "google_compute_disk" "tectonic_mongo_disk" {
 
 resource "google_compute_disk" "tectonic_elasticsearch_disk" {
   project = var.project
-  name    = "tectonic-elasticsearch-disk"
+  name    = "tectonic-elasticsearch-${local.global.environment}-disk"
   type    = "pd-ssd"
   zone    = local.global.location
   size    = 300

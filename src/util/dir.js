@@ -29,12 +29,13 @@ export async function assertBedrockRoot() {
   return dir;
 }
 
-export async function assertTectonicDir() {
+export async function assertTectonicRoot() {
   let dir = cwd;
 
   while (dir !== ROOT_DIR) {
     try {
       await fs.access(path.resolve(dir, 'tectonic', 'environments'), constants.W_OK);
+      await fs.access(path.resolve(dir, 'tectonic', 'provisioning'), constants.W_OK);
       break;
     } catch (err) {
       dir = path.resolve(dir, '..');
@@ -48,6 +49,8 @@ export async function assertTectonicDir() {
   if (dir !== process.cwd()) {
     process.chdir(dir);
   }
+
+  process.chdir('./tectonic');
 
   return dir;
 }
