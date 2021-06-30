@@ -9,12 +9,19 @@
         {
           "name": "project",
           "type": "string",
-          "description": "Project name",
+          "description": "gCloud Project name",
           "required": true,
           "prompt": true
         }
       ],
       "options": [
+        {
+          "name": "environment",
+          "type": "string",
+          "description": "Environment",
+          "required": true,
+          "prompt": true
+        },
         {
           "name": "domain",
           "type": "domain",
@@ -23,17 +30,10 @@
           "prompt": true
         },
         {
-          "name": "repository",
-          "type": "repository",
-          "description": "Git repository",
-          "required": false,
-          "prompt": true
-        },
-        {
-          "name": "address",
+          "name": "admin-email",
           "type": "string",
-          "description": "Company address",
-          "required": false,
+          "description": "Admin Email",
+          "required": true,
           "prompt": true
         },
         {

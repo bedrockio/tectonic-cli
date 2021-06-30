@@ -7,10 +7,7 @@ variable "buckets" {
   type = set(string)
 
   default = [
-    "uploads",
-    "uploads-backup",
     "mongodb-backups",
-    "pubsub",
     "batches"
   ]
 }
