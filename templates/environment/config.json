@@ -1,9 +1,9 @@
 {
   "gcloud": {
     "envName": "<ENV_NAME>",
-    "bucketPrefix": "<PROJECT>-tectonic",
+    "bucketPrefix": "<BUCKET_PREFIX>",
     "project": "<PROJECT>",
-    "computeZone": "",
+    "computeZone": "<COMPUTE_ZONE>",
     "kubernetes": {
       "clusterName": "tectonic-cluster-1",
       "nodePoolCount": 1,

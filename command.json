@@ -20,7 +20,8 @@
           "type": "string",
           "description": "Environment",
           "required": true,
-          "prompt": true
+          "prompt": true,
+          "initial": "staging"
         },
         {
           "name": "domain",
@@ -42,6 +43,14 @@
           "description": "Admin password",
           "required": false,
           "prompt": true
+        },
+        {
+          "name": "compute-zone",
+          "type": "string",
+          "description": "GKE Compute Zone",
+          "required": false,
+          "prompt": true,
+          "initial": "us-east1-c"
         }
       ]
     },

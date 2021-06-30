@@ -10,7 +10,6 @@ const { camelCase } = require('lodash');
 const { promptFill } = require('../src/util/prompt');
 const { version } = require('../package.json');
 const descriptor = require('../command.json');
-const cloud = require('../src/cloud');
 
 program.version(version);
 addCommand(program, descriptor);
@@ -90,7 +89,7 @@ function getHandler(descriptor) {
     const name = descriptor.functionName || camelCase(descriptor.name);
     const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
     return mod[name] || mod.default;
-  } catch(err) {
+  } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       return require(path.resolve(__dirname, '../src', ...dirs)).default;
     } else {

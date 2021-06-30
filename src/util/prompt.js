@@ -2,13 +2,7 @@ import prompts from 'prompts';
 import kleur from 'kleur';
 import { lowerFirst } from 'lodash';
 
-import {
-  validateEnum,
-  validateEmail,
-  validateDomain,
-  validateString,
-  validateRepository,
-} from './validation';
+import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation';
 
 export async function promptFill(answers, options = []) {
   prompts.override(answers);
@@ -60,7 +54,7 @@ export async function prompt(arg) {
 }
 
 function getPromptOptions(option) {
-  const { type: optionType, description, required, choices } = option;
+  const { type: optionType, description, required, choices, initial } = option;
   const lower = lowerFirst(description);
   if (optionType === 'multiple') {
     return {
@@ -92,6 +86,7 @@ function getPromptOptions(option) {
     return {
       type: 'text',
       message: `Enter ${lower}${required ? '' : ' (optional)'}:`,
+      initial,
     };
   }
 }
