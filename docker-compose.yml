@@ -1,0 +1,106 @@
+version: "3.7"
+
+services:
+  tectonic-api:
+    image: bedrockio/tectonic-api:latest
+    command: [
+        "./scripts/wait-for-it.sh",
+        "mongo:27017",
+        "--",
+        "./scripts/wait-for-it.sh",
+        "elasticsearch:9200",
+        "--",
+        "./scripts/wait-for-it.sh",
+        "pubsub:9200",
+        "--",
+        "yarn",
+        "start:production", # producion required to overwrite PUBSUB_EMULATOR_HOST
+      ]
+    environment:
+      - MONGO_URI=mongodb://mongo/tectonic_dev
+      - PUBSUB_EMULATOR_HOST=pubsub:8200
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - GOOGLE_CLOUD_PROJECT=tectonic
+    ports:
+      - "3300:3300"
+    links:
+      - mongo
+      - pubsub
+      - elasticsearch
+      - api-elasticsearch-worker
+    depends_on:
+      - mongo
+      - pubsub
+      - elasticsearch
+      - api-elasticsearch-worker
+
+  tectonic-elasticsearch-sink:
+    image: bedrockio/tectonic-elasticsearch-sink:latest
+    command: [
+        "./scripts/wait-for-it.sh",
+        "mongo:27017",
+        "--",
+        "./scripts/wait-for-it.sh",
+        "elasticsearch:9200",
+        "--",
+        "./scripts/wait-for-it.sh",
+        "pubsub:9200",
+        "--",
+        "yarn",
+        "elasticsearch-sink:start:production", # producion required to overwrite PUBSUB_EMULATOR_HOST
+      ]
+    environment:
+      - MONGO_URI=mongodb://mongo/tectonic_dev
+      - PUBSUB_EMULATOR_HOST=pubsub:8200
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - GOOGLE_CLOUD_PROJECT=tectonic
+    links:
+      - mongo
+      - pubsub
+      - elasticsearch
+    depends_on:
+      - mongo
+      - pubsub
+      - elasticsearch
+
+  tectonic-web:
+    image: bedrockio/tectonic-web:latest
+    command: ["yarn", "start"]
+    ports:
+      - "3200:3200"
+      - "34001:34001"
+    depends_on:
+      - api
+
+  mongo:
+    image: mongo:4.4.4
+    command: --serviceExecutor adaptive
+    logging:
+      driver: none
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - db-data:/data/db
+    ports:
+      - 27017:27017
+
+  pubsub:
+    image: bedrockio/tectonic-pubsub-emulator:latest
+    ports:
+      - "8200:8200"
+
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+
+volumes:
+  db-data:
+  es-data:
