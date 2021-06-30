@@ -189,7 +189,7 @@ export async function shell(options) {
   }
   const pods = JSON.parse(podsJSON).items;
 
-  let deployment = 'api-cli-deployment';
+  let deployment = 'cli-deployment';
   if (service) {
     deployment = getDeployment(service, subservice);
   }
