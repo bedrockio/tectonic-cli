@@ -93,6 +93,12 @@ export async function provisionTerraform(environment, terraform, options) {
       console.info(command);
       await execSyncInherit(command);
       await plan(options, planFile, true);
+      let confirmed = await prompt({
+        type: 'confirm',
+        name: 'apply',
+        message: 'Are you sure?',
+      });
+      if (!confirmed) process.exit(0);
       await execSyncInherit(`terraform apply -refresh-only "${planFile}"`);
     } else if (terraform == 'migrate') {
       const terraformBucket = `${bucketPrefix}-terraform-system-state`;
