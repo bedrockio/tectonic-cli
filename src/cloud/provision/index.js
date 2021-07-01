@@ -47,7 +47,11 @@ async function terraform(options, command) {
   await checkGCloudProject(config.gcloud);
   await checkTerraformCommand();
 
-  await provisionTerraform(environment, command, config.gcloud);
+  try {
+    await provisionTerraform(environment, command, config.gcloud);
+  } catch (e) {
+    // ignore error
+  }
 }
 
 async function plan(options, planFile, refresh = false) {
@@ -137,7 +141,11 @@ export async function provisionTerraform(environment, terraform, options) {
         message: 'Are you sure?',
       });
       if (!confirmed) process.exit(0);
-      await execSyncInherit(`terraform destroy -auto-approve`);
+      try {
+        await execSyncInherit(`terraform destroy -auto-approve`);
+      } catch (e) {
+        console.info(kleur.yellow('Make sure to manually empty buckets before destroying (failsafe)'));
+      }
     } else {
       console.info(kleur.yellow(`Terraform command "${terraform}" not supported`));
     }
