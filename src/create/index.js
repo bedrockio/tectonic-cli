@@ -29,6 +29,20 @@ export default async function create(options) {
   const environmentsDir = path.resolve(tectonicDir, 'environments');
   const environmentDir = path.resolve(environmentsDir, environment);
 
+  const APP_URL = await prompt({
+    type: 'text',
+    message: 'Enter APP url',
+    initial: `https://${domain}`,
+    validate: validateDomain,
+  });
+
+  const API_URL = await prompt({
+    type: 'text',
+    message: 'Enter API url',
+    initial: `https://api.${domain}`,
+    validate: validateDomain,
+  });
+
   // Templating and creation of tectonic enviroment configuration
   if (fs.existsSync(environmentDir)) {
     console.info(kleur.yellow(`Existing configuration '/tectonic/environments/${environment}/config.json':`));
@@ -75,8 +89,6 @@ export default async function create(options) {
       const ACCESS_JWT_SECRET = await exec('openssl rand -base64 30');
       const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
       const BUCKET_PREFIX = `${project}-tectonic-${environment}`;
-      const APP_URL = `https://${domain}`;
-      const API_URL = `https://api.${domain}`;
 
       await replaceAll(`tectonic/environments/${environment}/**/*.{js,md,yml,tf,conf,json,env}`, (str) => {
         str = str.replace(/<ENV_NAME>/g, environment);
@@ -122,4 +134,13 @@ export default async function create(options) {
   }
 
   await bootstrapProjectEnvironment(project, environment, config);
+}
+
+const DOMAIN_REG = /^https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+
+function validateDomain(str = '') {
+  if (!DOMAIN_REG.test(str)) {
+    return 'Enter valid http(s)://domain';
+  }
+  return true;
 }
