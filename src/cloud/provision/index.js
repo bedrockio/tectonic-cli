@@ -23,6 +23,10 @@ export async function terraformReconfigure(options) {
   await terraform(options, 'reconfigure');
 }
 
+export async function terraformRefresh(options) {
+  await terraform(options, 'refresh');
+}
+
 export async function terraformMigrate(options) {
   await terraform(options, 'migrate');
 }
@@ -103,6 +107,9 @@ export async function provisionTerraform(environment, terraform, options) {
         message: 'Are you sure?',
       });
       if (!confirmed) process.exit(0);
+      await execSyncInherit(`terraform apply -refresh-only "${planFile}"`);
+    } else if (terraform == 'refresh') {
+      await plan(options, planFile, true);
       await execSyncInherit(`terraform apply -refresh-only "${planFile}"`);
     } else if (terraform == 'migrate') {
       const terraformBucket = `${bucketPrefix}-terraform-system-state`;

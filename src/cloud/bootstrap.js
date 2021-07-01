@@ -2,8 +2,9 @@ import { green, yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
+import { sleep } from '../util/sleep';
 import { writeConfig, readServiceYaml } from './utils';
-import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
+import { checkTerraformCommand, terraformInit, terraformApply, terraformRefresh } from './provision/index';
 import { authorize, status, rollout } from './index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
@@ -58,6 +59,8 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await terraformInit({ environment });
   console.info(yellow('=> Terraform apply'));
   await terraformApply({ environment });
+  console.info(yellow('=> Terraform refresh'));
+  await terraformRefresh({ environment });
 
   console.info(yellow('=> Authorizing into Kubernetes cluster'));
   await authorize({ environment });
@@ -83,6 +86,10 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
   }
 
+  console.info(yellow(`=> Waiting for data services and ingress to be ready`));
+  await sleep(20 * 1000);
+
+  console.info(yellow(`=> Rolling out services`));
   await rollout({ environment, service: 'cli' });
   await rollout({ environment, service: 'api' });
   await rollout({ environment, service: 'elasticsearch-sink' });

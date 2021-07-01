@@ -257,6 +257,18 @@
               ]
             },
             {
+              "name": "refresh",
+              "functionName": "terraformRefresh",
+              "description": "Terraform apply -refresh-only",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
               "name": "reconfigure",
               "functionName": "terraformReconfigure",
               "description": "Terraform initialize provisioning with -reconfigure",
