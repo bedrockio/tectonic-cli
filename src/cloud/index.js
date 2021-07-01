@@ -82,6 +82,8 @@ export async function status(options) {
   console.info('');
   await execSyncInherit('kubectl get nodes');
   console.info('');
+  await execSyncInherit('kubectl get hpa');
+  console.info('');
   const podInfo = await exec('kubectl get pods');
   console.info(podInfo, '\n');
   if (podInfo.includes('CreateContainerConfigError')) {
@@ -100,7 +102,7 @@ export async function rollout(options) {
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
-  //await checkConfig(environment, config);
+  await checkConfig(environment, config);
 
   if (!service) {
     const services = await getServicesPrompt(environment);

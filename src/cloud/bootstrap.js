@@ -2,9 +2,9 @@ import { green, yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
-import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
+import { writeConfig, readServiceYaml } from './utils';
 import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
-import { authorize, status } from './index';
+import { authorize, status, rollout } from './index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
@@ -14,7 +14,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
   } catch (e) {
-    exit('There is no active glcoud account. Please login to glcloud first. Run: "bedrock cloud login"');
+    exit('There is no active gcloud account. Please login to glcloud first. Run: "tectonic cloud login"');
   }
 
   try {
@@ -22,7 +22,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   } catch (e) {
     exit(
       `Error: No access for user [${activeAccount}] or unknown project [${project}]
-       (Perhaps you need to login first: "bedrock cloud login")`
+       (Perhaps you need to login first: "tectonic cloud login")`
     );
   }
 
@@ -64,29 +64,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Get Kubernetes cluster nodes'));
   await execSyncInherit('kubectl get nodes');
 
-  // console.info(yellow('=> Get disks'));
-  // const disks = await getDisks({ computeZone });
-  // const diskNames = disks.map((disk) => {
-  //   return disk.name;
-  // });
-  // for (const diskName of diskNames) {
-  //   console.info(green(diskName));
-  // }
-  // if (!diskNames.includes('mongo-disk')) {
-  //   console.info(yellow('=> Creating mongo-disk'));
-  //   await createDisk({ computeZone, name: 'mongo-disk' });
-  // }
-
-  // if (!diskNames.includes('elasticsearch-disk')) {
-  //   console.info(yellow('=> Creating elasticsearch-disk'));
-  //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
-  // }
-
-  const { computeZone, recreateIngress = true } = gcloud;
-  // computeZone example: us-east1-c
-  const region = computeZone.slice(0, -2); // e.g. us-east1
-  const envPath = `deployment/environments/${environment}`;
-  const services = gcloud.services || ['api', 'web'];
+  const envPath = `environments/${environment}`;
   const ingresses = gcloud.ingresses || [];
 
   console.info(yellow('=> Creating data pods'));
@@ -94,70 +72,54 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await execSyncInherit(`kubectl create -f ${envPath}/data`);
 
   const ips = [];
-  for (let service of services) {
-    console.info(yellow(`=> Configure ${service} loadbalancer`));
-    let ip = await configureServiceLoadBalancer(environment, service, region);
-    ips.push([service, ip]);
-    console.info(yellow(`=> Creating ${service} service`));
-    await execSyncInherit(`kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`);
-    await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
-  }
 
   for (let ingress of ingresses) {
     console.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
-    ips.push([ingress+'-ingress', ip]);
-    if (recreateIngress) {
-      console.info(yellow(`=> Creating ${ingress} ingress`));
-      await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
-      await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
-    }
+    ips.push([ingress + '-ingress', ip]);
+
+    console.info(yellow(`=> Creating ${ingress} ingress`));
+    await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
+    await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
   }
 
-  console.info(yellow('=> Finishing up'));
-  console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));
+  await rollout({ environment, service: 'cli' });
+  await rollout({ environment, service: 'api' });
+  await rollout({ environment, service: 'elasticsearch-sink' });
+  await rollout({ environment, service: 'web' });
+
+  await status({ environment });
+
+  if (ips.length) {
+    console.info(yellow('=> Finishing up'));
+    console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));
+  }
   for (const [serviceName, serviceIP] of ips) {
     console.info(green(` ${serviceName}:`));
     console.info(green(` - address: ${serviceIP}`));
     if (serviceName == 'api' || serviceName.match(/api-ingress$/)) {
-      const apiUrl = await getApiUrl(environment);
-      if (apiUrl) {
-        console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+      try {
+        const apiUrl = getApiUrl(environment);
+        if (apiUrl) {
+          console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+        }
+      } catch (e) {
+        // Ignore error
       }
     }
     if (serviceName == 'web' || serviceName.match(/web-ingress$/)) {
-      const appUrl = await getAppUrl(environment);
-      if (appUrl) {
-        console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+      try {
+        const appUrl = getAppUrl(environment);
+        if (appUrl) {
+          console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+        }
+      } catch (e) {
+        // Ignore error
       }
-
     }
   }
 
   console.info(green('Done!'));
-}
-
-async function configureServiceLoadBalancer(environment, service, region) {
-  let addressIP;
-  try {
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
-    addressIP = JSON.parse(addressJSON).address;
-  } catch (e) {
-    console.info(yellow(`Creating ${service.toUpperCase()} address`));
-    await execSyncInherit(`gcloud compute addresses create ${service} --region ${region}`);
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
-    addressIP = JSON.parse(addressJSON).address;
-
-    // Update service yml file
-    const fileName = `${service}-service.yml`;
-    const serviceYaml = readServiceYaml(environment, fileName);
-    console.info(yellow(`=> Updating ${fileName}`));
-    serviceYaml.spec.loadBalancerIP = addressIP;
-    writeServiceYaml(environment, fileName, serviceYaml);
-    console.info(serviceYaml);
-  }
-  console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
-  return addressIP;
 }
 
 async function configureIngress(ingress) {
@@ -175,50 +137,6 @@ async function configureIngress(ingress) {
   console.info(green(`${ingressName.toUpperCase()} ingress addressIP: ${addressIP}`));
   return addressIP;
 }
-
-function configureDeploymentGCRPath(environment, service, project) {
-  // Update deployment yml file
-  const fileName = `${service}-deployment.yml`;
-  const serviceYaml = readServiceYaml(environment, fileName);
-
-  const image = serviceYaml.spec.template.spec.containers[0].image;
-  const newImage = image.replace(/gcr\.io\/.*\//, `gcr.io/${project}/`);
-  console.info(green(newImage));
-
-  if (image != newImage) {
-    console.info(yellow(`=> Updating ${fileName}`));
-    serviceYaml.spec.template.spec.containers[0].image = newImage;
-    writeServiceYaml(environment, fileName, serviceYaml);
-  }
-}
-
-// async function createDisk(options = {}) {
-//   const { computeZone } = options;
-//   if (!computeZone) return console.info(red('Missing computeZone to create disk'));
-//   const name =
-//     options.name ||
-//     (await prompt({
-//       type: 'text',
-//       message: 'Enter disk name:',
-//     }));
-
-//   const size =
-//     options.size ||
-//     (await prompt({
-//       type: 'text',
-//       message: 'Enter disk size:',
-//       initial: '200GB',
-//     }));
-
-//   await execSyncInherit(`gcloud compute disks create ${name} --size=${size} --zone=${computeZone}`);
-// }
-
-// async function getDisks(options = {}) {
-//   const { computeZone } = options;
-//   if (!computeZone) return console.info(red('Missing computeZone to get disks'));
-//   const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
-//   return JSON.parse(disks);
-// }
 
 function getAppUrl(environment) {
   const fileName = 'api-deployment.yml';

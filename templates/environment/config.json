@@ -11,7 +11,6 @@
       "maxNodeCount": 3,
       "machineType": "n2-standard-2"
     },
-    "services": [],
     "ingresses": ["tectonic-api", "tectonic-web"],
     "label": "app",
     "domain": "<DOMAIN>",
