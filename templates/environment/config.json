@@ -6,9 +6,9 @@
     "computeZone": "<COMPUTE_ZONE>",
     "kubernetes": {
       "clusterName": "tectonic-cluster-1",
-      "nodePoolCount": 1,
-      "minNodeCount": 1,
-      "maxNodeCount": 3,
+      "nodePoolCount": 2,
+      "minNodeCount": 2,
+      "maxNodeCount": 6,
       "machineType": "n2-standard-2"
     },
     "ingresses": ["tectonic-api", "tectonic-web"],
