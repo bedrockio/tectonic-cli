@@ -12,9 +12,7 @@
           "description": "gCloud project ID",
           "required": true,
           "prompt": true
-        }
-      ],
-      "options": [
+        },
         {
           "name": "environment",
           "type": "string",
@@ -22,37 +20,9 @@
           "required": true,
           "prompt": true,
           "initial": "staging"
-        },
-        {
-          "name": "domain",
-          "type": "domain",
-          "description": "Domain",
-          "required": true,
-          "prompt": true
-        },
-        {
-          "name": "admin-email",
-          "type": "string",
-          "description": "Admin email",
-          "required": true,
-          "prompt": true
-        },
-        {
-          "name": "admin-password",
-          "type": "string",
-          "description": "Admin password",
-          "required": false,
-          "prompt": true
-        },
-        {
-          "name": "compute-zone",
-          "type": "string",
-          "description": "gCloud compute zone",
-          "required": false,
-          "prompt": true,
-          "initial": "us-east1-c"
         }
-      ]
+      ],
+      "options": []
     },
     {
       "name": "cloud",

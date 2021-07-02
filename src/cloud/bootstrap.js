@@ -86,7 +86,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
   }
 
-  console.info(yellow(`=> Waiting for data services and ingress to be ready`));
+  console.info(yellow(`=> Waiting for data services and ingress to be ready (20 seconds)`));
   await sleep(20 * 1000);
 
   console.info(yellow(`=> Rolling out services`));

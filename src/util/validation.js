@@ -20,9 +20,27 @@ export function validateEmail(str = '', option) {
 
 const DOMAIN_REG = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
 
-export function validateDomain(str = '', option) {
+export function validateDomain(str = '', option = {}) {
   if ((str || option.required) && !DOMAIN_REG.test(str)) {
     return 'Enter valid domain';
+  }
+  return true;
+}
+
+const DOMAIN_URL_REG = /^https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+
+export function validateDomainURL(str = '') {
+  if (str && !DOMAIN_URL_REG.test(str)) {
+    return 'Enter valid http(s)://domain';
+  }
+  return true;
+}
+
+const COMPUTE_ZONE_REG = /^[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]$/;
+
+export function validateComputeZone(str = '') {
+  if (str && !COMPUTE_ZONE_REG.test(str)) {
+    return 'Enter valid compute zone';
   }
   return true;
 }

@@ -6,42 +6,20 @@ import { queueTask, runTasks } from '../util/tasks';
 import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import { prompt } from '../util/prompt';
+import { validateEmail, validateDomain, validateDomainURL, validateComputeZone } from '../util/validation';
 import { bootstrapProjectEnvironment } from '../cloud/bootstrap';
 import { randomBytes } from 'crypto';
 
 export default async function create(options) {
-  const {
-    project,
-    environment,
-    domain,
-    'admin-email': adminEmail,
-    'admin-password': adminPassword = '',
-    'compute-zone': computeZone = 'us-east1-c',
-  } = options;
+  const { project, environment } = options;
 
   if (!project) exit('GCloud Project name is required');
   if (!environment) exit('Environment is required');
-  if (!domain) exit('Domain is required');
-  if (!adminEmail) exit('adminEmail is required');
 
   const tectonicDir = path.resolve('tectonic');
   const provisioningDir = path.resolve(tectonicDir, 'provisioning');
   const environmentsDir = path.resolve(tectonicDir, 'environments');
   const environmentDir = path.resolve(environmentsDir, environment);
-
-  const APP_URL = await prompt({
-    type: 'text',
-    message: 'Enter APP url',
-    initial: `https://${domain}`,
-    validate: validateDomain,
-  });
-
-  const API_URL = await prompt({
-    type: 'text',
-    message: 'Enter API url',
-    initial: `https://api.${domain}`,
-    validate: validateDomain,
-  });
 
   // Templating and creation of tectonic enviroment configuration
   if (fs.existsSync(environmentDir)) {
@@ -57,6 +35,41 @@ export default async function create(options) {
     if (!confirmed) process.exit(0);
     console.info(kleur.yellow(`Skipping templating and keeping current configuration`));
   } else {
+    // Prompt for domain, adminEmail, adminPassword, computeZone, app_url and api_url
+    // Not listed in command.json, because we don't want to prompt the user if the environment already exists
+    const domain = await prompt({
+      type: 'text',
+      message: 'Enter domain',
+      validate: validateDomain,
+    });
+    const APP_URL = await prompt({
+      type: 'text',
+      message: 'Enter APP url',
+      initial: `https://${domain}`,
+      validate: validateDomainURL,
+    });
+    const API_URL = await prompt({
+      type: 'text',
+      message: 'Enter API url',
+      initial: `https://api.${domain}`,
+      validate: validateDomainURL,
+    });
+    const adminEmail = await prompt({
+      type: 'text',
+      message: 'Enter admin email',
+      validate: validateEmail,
+    });
+    const adminPassword = await prompt({
+      type: 'password',
+      message: 'Enter admin password (optional)',
+    });
+    const computeZone = await prompt({
+      type: 'text',
+      message: 'Enter gCloud compute zone',
+      initial: 'us-east1-c',
+      validate: validateComputeZone,
+    });
+
     queueTask(`Create Environment '${environment}' from template`, async () => {
       fs.ensureDirSync(tectonicDir);
 
@@ -134,13 +147,4 @@ export default async function create(options) {
   }
 
   await bootstrapProjectEnvironment(project, environment, config);
-}
-
-const DOMAIN_REG = /^https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
-
-function validateDomain(str = '') {
-  if (!DOMAIN_REG.test(str)) {
-    return 'Enter valid http(s)://domain';
-  }
-  return true;
 }
