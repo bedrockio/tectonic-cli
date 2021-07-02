@@ -44,14 +44,14 @@ export default async function create(options) {
     });
     const APP_URL = await prompt({
       type: 'text',
-      message: 'Enter APP url',
-      initial: `https://${domain}`,
+      message: 'Enter Tectonic Dashboard url',
+      initial: `https://tectonic.${domain}`,
       validate: validateDomainURL,
     });
     const API_URL = await prompt({
       type: 'text',
-      message: 'Enter API url',
-      initial: `https://api.${domain}`,
+      message: 'Enter Tectonic API url',
+      initial: `https://tectonic-api.${domain}`,
       validate: validateDomainURL,
     });
     const adminEmail = await prompt({
