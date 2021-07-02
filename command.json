@@ -353,12 +353,16 @@
       ]
     },
     {
+      "name": "up",
+      "description": "Run local instance with docker compose"
+    },
+    {
       "name": "update",
       "description": "Updates this script."
     },
     {
-      "name": "up",
-      "description": "Run local instance with docker compose"
+      "name": "hash",
+      "description": "Show installed git hash"
     }
   ]
 }
