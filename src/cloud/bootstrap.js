@@ -76,14 +76,26 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
 
   const ips = [];
 
+  const ingressJSON = await exec(`kubectl get ingress -o json --ignore-not-found`);
+  let existingIngresses = [];
+  if (ingressJSON) {
+    const ingressItems = JSON.parse(ingressJSON).items;
+    existingIngresses = ingressItems.map((pod) => pod.metadata.name);
+  }
+
   for (let ingress of ingresses) {
     console.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
     ips.push([ingress + '-ingress', ip]);
 
-    console.info(yellow(`=> Creating ${ingress} ingress`));
-    await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
-    await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
+    // TODO prompt user for recreation?
+    if (existingIngresses.includes(`${ingress}-ingress`)) {
+      console.info(yellow(`=> '${ingress}-ingress' already exists`));
+    } else {
+      console.info(yellow(`=> Creating ${ingress} ingress`));
+      await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
+      await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
+    }
   }
 
   console.info(yellow(`=> Waiting for data services and ingress to be ready (20 seconds)`));
