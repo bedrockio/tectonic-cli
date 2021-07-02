@@ -11,10 +11,8 @@ import { bootstrapProjectEnvironment } from '../cloud/bootstrap';
 import { randomBytes } from 'crypto';
 
 export default async function create(options) {
-  const { project, environment } = options;
-
-  if (!project) exit('GCloud Project name is required');
-  if (!environment) exit('Environment is required');
+  const project = options.project.toLowerCase();
+  const environment = options.environment.toLowerCase();
 
   const tectonicDir = path.resolve('tectonic');
   const provisioningDir = path.resolve(tectonicDir, 'provisioning');
@@ -57,6 +55,7 @@ export default async function create(options) {
     const adminEmail = await prompt({
       type: 'text',
       message: 'Enter admin email',
+      initial: `admin@${domain}`,
       validate: validateEmail,
     });
     const adminPassword = await prompt({
@@ -72,6 +71,15 @@ export default async function create(options) {
 
     queueTask(`Create Environment '${environment}' from template`, async () => {
       fs.ensureDirSync(tectonicDir);
+
+      const dockerComposeSource = path.resolve(__dirname, '../../docker-compose.yml');
+      const dockerComposeTarget = path.resolve(tectonicDir, 'docker-compose.yml');
+
+      try {
+        fs.copySync(dockerComposeSource, dockerComposeTarget);
+      } catch (err) {
+        console.error(err);
+      }
 
       if (!fs.existsSync(provisioningDir)) {
         const provisioningTemplateDir = path.resolve(__dirname, '../../templates/provisioning');
@@ -109,12 +117,12 @@ export default async function create(options) {
         str = str.replace(/<APPLICATION_JWT_SECRET>/g, APPLICATION_JWT_SECRET);
         str = str.replace(/<ACCESS_JWT_SECRET>/g, ACCESS_JWT_SECRET);
         str = str.replace(/<PROJECT>/g, project);
-        str = str.replace(/<DOMAIN>/g, domain);
-        str = str.replace(/<APP_URL>/g, APP_URL);
-        str = str.replace(/<API_URL>/g, API_URL);
+        str = str.replace(/<DOMAIN>/g, domain.toLowerCase());
+        str = str.replace(/<APP_URL>/g, APP_URL.toLowerCase());
+        str = str.replace(/<API_URL>/g, API_URL.toLowerCase());
         str = str.replace(/<BUCKET_PREFIX>/g, BUCKET_PREFIX);
-        str = str.replace(/<COMPUTE_ZONE>/g, computeZone);
-        str = str.replace(/<ADMIN_EMAIL>/g, adminEmail);
+        str = str.replace(/<COMPUTE_ZONE>/g, computeZone.toLowerCase());
+        str = str.replace(/<ADMIN_EMAIL>/g, adminEmail.toLowerCase());
         str = str.replace(/<ADMIN_PASSWORD>/g, ADMIN_PASSWORD);
         return str;
       });
