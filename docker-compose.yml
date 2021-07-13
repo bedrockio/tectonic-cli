@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  tectonic-api:
+  api:
     image: bedrockio/tectonic-api:latest
     command: [
         "./scripts/wait-for-it.sh",
@@ -27,14 +27,36 @@ services:
       - mongo
       - pubsub
       - elasticsearch
-      - api-elasticsearch-worker
+      - elasticsearch-sink
     depends_on:
       - mongo
       - pubsub
       - elasticsearch
-      - api-elasticsearch-worker
+      - elasticsearch-sink
 
-  tectonic-elasticsearch-sink:
+  cli:
+    image: bedrockio/tectonic-cli:latest
+    command: bash -c "./scripts/wait-for-it.sh mongo:27017 && ./scripts/wait-for-it.sh elasticsearch:9200 && ./scripts/wait-for-it.sh pubsub:8200 && sleep 20 && node ./scripts/publish-fixture-events.js"
+    environment:
+      - MONGO_URI=mongodb://mongo/tectonic_dev
+      - PUBSUB_EMULATOR_HOST=pubsub:8200
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - GOOGLE_CLOUD_PROJECT=tectonic
+      - API_URL=http://api:3300
+    links:
+      - api
+      - mongo
+      - pubsub
+      - elasticsearch
+      - elasticsearch-sink
+    depends_on:
+      - api
+      - mongo
+      - pubsub
+      - elasticsearch
+      - elasticsearch-sink
+
+  elasticsearch-sink:
     image: bedrockio/tectonic-elasticsearch-sink:latest
     command: [
         "./scripts/wait-for-it.sh",
@@ -63,12 +85,11 @@ services:
       - pubsub
       - elasticsearch
 
-  tectonic-web:
+  web:
     image: bedrockio/tectonic-web:latest
     command: ["yarn", "start"]
     ports:
       - "3200:3200"
-      - "34001:34001"
     depends_on:
       - api
 
@@ -77,30 +98,18 @@ services:
     command: --serviceExecutor adaptive
     logging:
       driver: none
-    environment:
-      - MONGO_DATA_DIR=/data/db
-      - MONGO_LOG_DIR=/dev/null
-    volumes:
-      - db-data:/data/db
     ports:
-      - 27017:27017
+      - 27017
 
   pubsub:
     image: bedrockio/tectonic-pubsub-emulator:latest
     ports:
-      - "8200:8200"
+      - 8200
 
   elasticsearch:
     image: elasticsearch:7.9.3
-    container_name: elasticsearch
     ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - es-data:/usr/share/elasticsearch/data
+      - 9200
+      - 9300
     environment:
       - "discovery.type=single-node"
-
-volumes:
-  db-data:
-  es-data:
