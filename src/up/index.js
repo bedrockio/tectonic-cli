@@ -6,12 +6,12 @@ export async function checkDockerComposeCommand() {
   try {
     await exec('command -v docker-compose');
   } catch (e) {
-    exit('Error: Docker-compose is not installed (https://docs.docker.com/compose/)');
+    exit('Error: docker-compose is not installed (https://docs.docker.com/compose/)');
   }
 }
 
 export default async function up() {
   await checkDockerComposeCommand();
   const dockerComposeFile = path.resolve(__dirname, '../../docker-compose.yml');
-  await execSyncInherit(`docker-compose up -f ${dockerComposeFile} --force-recreate`);
+  await execSyncInherit(`docker-compose -f ${dockerComposeFile} up --force-recreate`);
 }
