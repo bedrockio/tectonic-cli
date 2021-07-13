@@ -13,5 +13,5 @@ export async function checkDockerComposeCommand() {
 export default async function up() {
   await checkDockerComposeCommand();
   const dockerComposeFile = path.resolve(__dirname, '../../docker-compose.yml');
-  await execSyncInherit(`docker-compose up -f ${dockerComposeFile}`);
+  await execSyncInherit(`docker-compose up -f ${dockerComposeFile} --force-recreate`);
 }
