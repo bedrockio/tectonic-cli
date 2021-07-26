@@ -94,7 +94,7 @@ services:
       - api
 
   mongo:
-    image: mongo:4.4.4
+    image: mongo:5.0.1
     command: --serviceExecutor adaptive
     logging:
       driver: none
@@ -107,7 +107,7 @@ services:
       - 8200
 
   elasticsearch:
-    image: elasticsearch:7.9.3
+    image: elasticsearch:7.12.0
     ports:
       - 9200
       - 9300
