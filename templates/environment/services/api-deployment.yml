@@ -17,7 +17,7 @@ spec:
         app: api
     spec:
       containers:
-        - image: bedrockio/tectonic-api
+        - image: bedrockio/tectonic-api:<TECTONIC_VERSION>
           imagePullPolicy: Always
           name: main
           resources:

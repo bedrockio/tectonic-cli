@@ -10,6 +10,8 @@ import { validateEmail, validateDomain, validateDomainURL, validateComputeZone }
 import { bootstrapProjectEnvironment } from '../cloud/bootstrap';
 import { randomBytes } from 'crypto';
 
+const TECTONIC_VERSION = '1.0.0';
+
 export default async function create(options) {
   const project = options.project.toLowerCase();
   const environment = options.environment.toLowerCase();
@@ -68,6 +70,11 @@ export default async function create(options) {
       initial: 'us-east1-c',
       validate: validateComputeZone,
     });
+    const tectonicVersion = await prompt({
+      type: 'text',
+      message: 'Enter Tectonic Version',
+      initial: TECTONIC_VERSION,
+    });
 
     queueTask(`Create Environment '${environment}' from template`, async () => {
       fs.ensureDirSync(tectonicDir);
@@ -124,6 +131,7 @@ export default async function create(options) {
         str = str.replace(/<COMPUTE_ZONE>/g, computeZone.toLowerCase());
         str = str.replace(/<ADMIN_EMAIL>/g, adminEmail.toLowerCase());
         str = str.replace(/<ADMIN_PASSWORD>/g, ADMIN_PASSWORD);
+        str = str.replace(/<TECTONIC_VERSION>/g, tectonicVersion.toLowerCase());
         return str;
       });
     });

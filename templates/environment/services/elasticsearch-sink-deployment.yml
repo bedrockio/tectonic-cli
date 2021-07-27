@@ -13,7 +13,7 @@ spec:
         app: elasticsearch-sink
     spec:
       containers:
-        - image: bedrockio/tectonic-elasticsearch-sink
+        - image: bedrockio/tectonic-elasticsearch-sink:<TECTONIC_VERSION>
           imagePullPolicy: Always
           name: elasticsearch-sink
           env:

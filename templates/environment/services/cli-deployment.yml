@@ -13,7 +13,7 @@ spec:
         app: cli
     spec:
       containers:
-        - image: bedrockio/tectonic-cli
+        - image: bedrockio/tectonic-cli:<TECTONIC_VERSION>
           imagePullPolicy: Always
           name: cli
           env:

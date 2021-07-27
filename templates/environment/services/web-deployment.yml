@@ -13,7 +13,7 @@ spec:
         app: web
     spec:
       containers:
-        - image: bedrockio/tectonic-web
+        - image: bedrockio/tectonic-web:<TECTONIC_VERSION>
           imagePullPolicy: Always
           name: main
           env:
