@@ -3,12 +3,14 @@ resource "google_container_cluster" "default" {
   project     = var.global.project
   location    = var.global.location
   name        = var.global.cluster_name
-
   description = var.description
 
   remove_default_node_pool = true
   initial_node_count       = 1
   enable_kubernetes_alpha  = false
+
+  network = "default"
+  subnetwork = "default"
 
   master_auth {
     username = ""
