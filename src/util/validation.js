@@ -27,7 +27,8 @@ export function validateDomain(str = '', option = {}) {
   return true;
 }
 
-const DOMAIN_URL_REG = /^https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+const DOMAIN_URL_REG =
+  /^https?:\/\/([a-zA-Z0-9][a-zA-Z0-9-]{1,61}\.)*[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
 
 export function validateDomainURL(str = '') {
   if (str && !DOMAIN_URL_REG.test(str)) {
