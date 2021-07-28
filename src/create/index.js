@@ -16,7 +16,7 @@ import {
 import { bootstrapProjectEnvironment } from '../cloud/bootstrap';
 import { randomBytes } from 'crypto';
 
-const TECTONIC_VERSION = '1.0.0';
+const TECTONIC_VERSION = 'latest'; // Change to 1.x once stable
 
 export default async function create(options) {
   const project = options.project.toLowerCase();
