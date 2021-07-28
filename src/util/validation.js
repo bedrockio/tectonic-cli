@@ -40,7 +40,16 @@ const COMPUTE_ZONE_REG = /^[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]$/;
 
 export function validateComputeZone(str = '') {
   if (str && !COMPUTE_ZONE_REG.test(str)) {
-    return 'Enter valid compute zone';
+    return 'Enter valid compute zone (x-x-x)';
+  }
+  return true;
+}
+
+const MACHINE_TYPE_REG = /^[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]$/;
+
+export function validateMachineType(str = '') {
+  if (str && !MACHINE_TYPE_REG.test(str)) {
+    return 'Enter valid machine type (x-x-x)';
   }
   return true;
 }

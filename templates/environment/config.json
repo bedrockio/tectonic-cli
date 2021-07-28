@@ -9,7 +9,7 @@
       "nodePoolCount": 2,
       "minNodeCount": 2,
       "maxNodeCount": 6,
-      "machineType": "n2-standard-2"
+      "machineType": "<MACHINE_TYPE>"
     },
     "ingresses": ["tectonic-api", "tectonic-web"],
     "label": "app",

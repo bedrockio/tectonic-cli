@@ -6,7 +6,13 @@ import { queueTask, runTasks } from '../util/tasks';
 import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { validateEmail, validateDomain, validateDomainURL, validateComputeZone } from '../util/validation';
+import {
+  validateEmail,
+  validateDomain,
+  validateDomainURL,
+  validateComputeZone,
+  validateMachineType,
+} from '../util/validation';
 import { bootstrapProjectEnvironment } from '../cloud/bootstrap';
 import { randomBytes } from 'crypto';
 
@@ -66,9 +72,25 @@ export default async function create(options) {
     });
     const computeZone = await prompt({
       type: 'text',
-      message: 'Enter gCloud compute zone',
+      message: 'Enter GKE cluster Compute zone',
       initial: 'us-east1-c',
       validate: validateComputeZone,
+    });
+    const machineType = await prompt({
+      type: 'text',
+      message: 'Enter GKE cluster Machine type',
+      initial: 'n2-standard-2',
+      validate: validateMachineType,
+    });
+    const mongoDiskSize = await prompt({
+      type: 'text',
+      message: 'Enter GKE MongoDB disk size (GB)',
+      initial: '200',
+    });
+    const elasticsearchDiskSize = await prompt({
+      type: 'text',
+      message: 'Enter GKE Elasticsearch disk size (GB)',
+      initial: '200',
     });
     const tectonicVersion = await prompt({
       type: 'text',
@@ -117,6 +139,8 @@ export default async function create(options) {
       const ACCESS_JWT_SECRET = await exec('openssl rand -base64 30');
       const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
       const BUCKET_PREFIX = `${project}-tectonic-${environment}`;
+      const MONGO_DISK_SIZE = mongoDiskSize || '200';
+      const ELASTICSEARCH_DISK_SIZE = elasticsearchDiskSize || '200';
 
       await replaceAll(`tectonic/environments/${environment}/**/*.{js,md,yml,tf,conf,json,env}`, (str) => {
         str = str.replace(/<ENV_NAME>/g, environment);
@@ -129,6 +153,9 @@ export default async function create(options) {
         str = str.replace(/<API_URL>/g, API_URL.toLowerCase());
         str = str.replace(/<BUCKET_PREFIX>/g, BUCKET_PREFIX);
         str = str.replace(/<COMPUTE_ZONE>/g, computeZone.toLowerCase());
+        str = str.replace(/<MACHINE_TYPE>/g, machineType.toLowerCase());
+        str = str.replace(/<MONGO_DISK_SIZE>/g, MONGO_DISK_SIZE);
+        str = str.replace(/<ELASTICSEARCH_DISK_SIZE>/g, ELASTICSEARCH_DISK_SIZE);
         str = str.replace(/<ADMIN_EMAIL>/g, adminEmail.toLowerCase());
         str = str.replace(/<ADMIN_PASSWORD>/g, ADMIN_PASSWORD);
         str = str.replace(/<TECTONIC_VERSION>/g, tectonicVersion.toLowerCase());
@@ -151,8 +178,8 @@ export default async function create(options) {
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
-    message: `Your cluster will now be provisioned, do you want to continue?`,
-    initial: true,
+    message: `Your GKE cluster will now be provisioned, do you want to continue?`,
+    initial: false,
   });
   if (!confirmed) process.exit(0);
 

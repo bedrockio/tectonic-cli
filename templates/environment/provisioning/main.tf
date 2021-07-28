@@ -37,7 +37,7 @@ resource "google_compute_disk" "tectonic_mongo_disk" {
   name    = "tectonic-mongo-${local.global.environment}-disk"
   type    = "pd-ssd"
   zone    = local.global.location
-  size    = 1000
+  size    = <MONGO_DISK_SIZE>
   labels  = {
     "goog-gke-volume" = ""
   }
@@ -48,7 +48,7 @@ resource "google_compute_disk" "tectonic_elasticsearch_disk" {
   name    = "tectonic-elasticsearch-${local.global.environment}-disk"
   type    = "pd-ssd"
   zone    = local.global.location
-  size    = 1000
+  size    = <ELASTICSEARCH_DISK_SIZE>
   labels  = {
     "goog-gke-volume" = ""
   }
