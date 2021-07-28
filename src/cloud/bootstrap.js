@@ -101,11 +101,18 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow(`=> Waiting for data services and ingress to be ready (20 seconds)`));
   await sleep(20 * 1000);
 
-  console.info(yellow(`=> Rolling out services`));
-  await rollout({ environment, service: 'cli' });
-  await rollout({ environment, service: 'api' });
-  await rollout({ environment, service: 'elasticsearch-sink' });
-  await rollout({ environment, service: 'web' });
+  console.info(yellow('=> Creating service pods'));
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/cli-deployment.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/cli-deployment.yml`);
+
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/api-deployment.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/api-deployment.yml`);
+
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/elasticsearch-sink-deployment.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/elasticsearch-sink-deployment.yml`);
+
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/web-deployment.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/web-deployment.yml`);
 
   await status({ environment });
 
