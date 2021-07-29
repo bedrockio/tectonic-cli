@@ -5,7 +5,7 @@ import { exec, execSyncInherit } from '../util/shell';
 import { sleep } from '../util/sleep';
 import { writeConfig, readServiceYaml } from './utils';
 import { checkTerraformCommand, terraformInit, terraformApply, terraformRefresh } from './provision/index';
-import { authorize, status, rollout } from './index';
+import { authorize, status } from './index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
