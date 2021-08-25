@@ -23,7 +23,7 @@ spec:
                       - elasticsearch
               topologyKey: kubernetes.io/hostname
       containers:
-        - image: mongo:5.0.1
+        - image: mongo:5.0.2
           name: main
           ports:
             - name: mongo

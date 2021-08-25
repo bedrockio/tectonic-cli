@@ -94,8 +94,7 @@ services:
       - api
 
   mongo:
-    image: mongo:5.0.1
-    command: --serviceExecutor adaptive
+    image: mongo:5.0.2
     logging:
       driver: none
     ports:
