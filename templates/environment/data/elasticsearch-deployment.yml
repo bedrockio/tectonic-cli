@@ -47,7 +47,7 @@ spec:
           securityContext:
             privileged: true
       containers:
-        - image: elasticsearch:7.12.0
+        - image: elasticsearch:7.14.0
           name: elasticsearch
           # resources:
           #   requests:
