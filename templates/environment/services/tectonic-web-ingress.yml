@@ -1,13 +1,15 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: tectonic-web-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: tectonic-web-ingress
 spec:
-  backend:
-    serviceName: web-nodeport
-    servicePort: 80
+  defaultBackend:
+    service:
+      name: web-nodeport
+      port:
+        number: 80
 
 ---
 apiVersion: v1
