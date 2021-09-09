@@ -68,3 +68,4 @@ services:
     environment:
       - "discovery.type=single-node"
       - "logger.level=WARN"
+      - "xpack.security.enabled=false"
