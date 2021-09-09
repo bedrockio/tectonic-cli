@@ -61,7 +61,7 @@ services:
       - 27017
 
   elasticsearch:
-    image: elasticsearch:7.14.0
+    image: elasticsearch:7.14.1
     ports:
       - 9200
       - 9300
