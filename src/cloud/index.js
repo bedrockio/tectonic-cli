@@ -217,6 +217,68 @@ export async function shell(options) {
   });
 }
 
+export async function portForward(options) {
+  await assertTectonicRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  await checkKubectlVersion();
+  const config = readConfig(environment);
+  await checkConfig(environment, config);
+
+  let service = options.service;
+  let subservice = options.subservice;
+  if (!service) {
+    [service, subservice] = await getServicesPrompt(environment, 'select');
+  }
+
+  let deployment = `deployment/${service}`;
+  if (subservice) {
+    deployment += `-${subservice}`;
+  }
+  deployment += '-deployment';
+
+  const localPort =
+    options.localPort ||
+    (await prompt({
+      type: 'text',
+      message: 'Enter Local Port number',
+      initial: '5602',
+      validate: (value) => (!value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true),
+    }));
+
+  const remotePort =
+    options.remotePort ||
+    (await prompt({
+      type: 'text',
+      message: 'Enter Remote Port number',
+      initial: '5601',
+      validate: (value) => (!value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true),
+    }));
+
+  console.info(yellow(`=> Starting portFoward for "${deployment}" ${localPort}:${remotePort}`));
+
+  await execSyncInherit(`kubectl port-forward ${deployment} ${localPort}:${remotePort}`);
+}
+
+export async function kibana(options) {
+  await assertTectonicRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  await checkKubectlVersion();
+  const config = readConfig(environment);
+  await checkConfig(environment, config);
+
+  let service = 'kibana';
+  let deployment = `deployment/${service}-deployment`;
+
+  const localPort = options.localPort || 5602;
+  const remotePort = options.remotePort || 5601;
+
+  console.info(yellow(`=> Starting portFoward for "${deployment}" ${localPort}:${remotePort} (localPort:remotePort)`));
+
+  await execSyncInherit(`kubectl port-forward ${deployment} ${localPort}:${remotePort}`);
+}
+
 export async function logs(options) {
   await assertTectonicRoot();
 
