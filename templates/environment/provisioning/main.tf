@@ -1,23 +1,23 @@
 ## https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/using_gke_with_terraform
 
 ## NETWORKING ##
-resource "google_compute_network" "gke" {
+resource "google_compute_network" "tectonic_gke" {
   project                 = var.project
-  name                    = "gke-network"
+  name                    = "tectonic-gke-network"
   auto_create_subnetworks = false
   description             = "Compute Network for GKE nodes"
 }
 
-resource "google_compute_subnetwork" "gke" {
+resource "google_compute_subnetwork" "tectonic_gke" {
   project       = var.project
-  name          = "gke-subnetwork"
-  ip_cidr_range = "10.5.0.0/20" # 4096 IPs
+  name          = "tectonic-gke-subnetwork"
+  ip_cidr_range = "10.7.0.0/20" # 4096 IPs
   region        = var.region
-  network       = google_compute_network.gke.id
+  network       = google_compute_network.tectonic_gke.id
 
   secondary_ip_range {
     range_name    = "services-range"
-    ip_cidr_range = "10.4.0.0/19" # 8192 IPs
+    ip_cidr_range = "10.6.0.0/19" # 8192 IPs
   }
 
   secondary_ip_range {
@@ -27,7 +27,7 @@ resource "google_compute_subnetwork" "gke" {
 }
 
 ## CLUSTER ##
-resource "google_container_cluster" "default" {
+resource "google_container_cluster" "tectonic" {
   project     = var.project
   location    = "${var.region}-${var.zone}"
   name        = var.cluster_name
@@ -37,8 +37,8 @@ resource "google_container_cluster" "default" {
   initial_node_count       = 1
   enable_kubernetes_alpha  = false
 
-  network    = google_compute_network.gke.id
-  subnetwork = google_compute_subnetwork.gke.id
+  network    = google_compute_network.tectonic_gke.id
+  subnetwork = google_compute_subnetwork.tectonic_gke.id
 
   gateway_api_config {
 		channel = "CHANNEL_STANDARD"

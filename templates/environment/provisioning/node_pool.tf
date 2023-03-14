@@ -2,7 +2,7 @@ resource "google_container_node_pool" "pool_1" {
   name       = "pool-1"
   project    = var.project
   location   = "${var.region}-${var.zone}"
-  cluster    = google_container_cluster.default.name
+  cluster    = google_container_cluster.tectonic.name
   node_count = var.node_pool_count
 
   autoscaling {
@@ -17,7 +17,6 @@ resource "google_container_node_pool" "pool_1" {
   }
 
   node_config {
-    spot  = var.preemptible
     machine_type = var.machine_type
     disk_type = "pd-standard"
     disk_size_gb = 100
@@ -37,6 +36,6 @@ resource "google_container_node_pool" "pool_1" {
   }
 
   depends_on = [
-    google_container_cluster.default
+    google_container_cluster.tectonic
   ]
 }
