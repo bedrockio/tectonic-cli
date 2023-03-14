@@ -101,7 +101,7 @@ resource "google_storage_bucket" "bucket" {
 ## DISKS ##
 resource "google_compute_disk" "tectonic_mongo_disk" {
   project = var.project
-  name    = "mongo-disk"
+  name    = "tectonic-mongo-${var.environment}-disk"
   type    = "pd-ssd"
   zone    = "${var.region}-${var.zone}"
   size    = <MONGO_DISK_SIZE>
@@ -115,7 +115,7 @@ resource "google_compute_disk" "tectonic_mongo_disk" {
 
 resource "google_compute_disk" "tectonic_elasticsearch-disk" {
   project = var.project
-  name    = "mongo-disk"
+  name    = "tectonic-elasticsearch-${var.environment}-disk"
   type    = "pd-ssd"
   zone    = "${var.region}-${var.zone}"
   size    = <ELASTICSEARCH_DISK_SIZE>
@@ -128,12 +128,12 @@ resource "google_compute_disk" "tectonic_elasticsearch-disk" {
 }
 
 ## IP ADDRESES ##
-resource "google_compute_global_address" "api_ingress" {
-  name     = "api-ingress"
+resource "google_compute_global_address" "tectonic_api_ingress" {
+  name     = "tectonic-api-ingress"
   project  = var.project
 }
 
-resource "google_compute_global_address" "web_ingress" {
-  name     = "web-ingress"
+resource "google_compute_global_address" "tectonic_web_ingress" {
+  name     = "tectonic-web-ingress"
   project  = var.project
 }
