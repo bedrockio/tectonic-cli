@@ -33,6 +33,11 @@
           "description": "Login to Google Cloud"
         },
         {
+          "name": "login-application",
+          "functionName": "loginApplication",
+          "description": "Login application-default to Google Cloud"
+        },
+        {
           "name": "account",
           "description": "Set Google Cloud account",
           "arguments": [
