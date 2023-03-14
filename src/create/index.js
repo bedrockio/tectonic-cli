@@ -23,7 +23,6 @@ export default async function create(options) {
   const environment = options.environment.toLowerCase();
 
   const tectonicDir = path.resolve('tectonic');
-  const provisioningDir = path.resolve(tectonicDir, 'provisioning');
   const environmentsDir = path.resolve(tectonicDir, 'environments');
   const environmentDir = path.resolve(environmentsDir, environment);
 
@@ -108,16 +107,6 @@ export default async function create(options) {
         fs.copySync(dockerComposeSource, dockerComposeTarget);
       } catch (err) {
         console.error(err);
-      }
-
-      if (!fs.existsSync(provisioningDir)) {
-        const provisioningTemplateDir = path.resolve(__dirname, '../../templates/provisioning');
-        try {
-          // console.info(`Copy provisioning template: ${provisioningTemplateDir} => ${provisioningDir}`);
-          fs.copySync(provisioningTemplateDir, provisioningDir);
-        } catch (err) {
-          console.error(err);
-        }
       }
 
       fs.ensureDirSync(environmentsDir);

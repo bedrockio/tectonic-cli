@@ -15,7 +15,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
   } catch (e) {
-    exit('There is no active gcloud account. Please login to glcloud first. Run: "tectonic cloud login"');
+    exit('There is no active gcloud account. Please login to gcloud first. Run: "tectonic cloud login"');
   }
 
   try {
@@ -54,6 +54,17 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await execSyncInherit('gcloud services enable compute.googleapis.com');
   console.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
+
+  let loginConfirmed = await prompt({
+    type: 'confirm',
+    name: 'open',
+    message: `Terraform requires you run 'gcloud auth application-default login' for this project. Did you already login?`,
+    initial: true,
+  });
+  if (!loginConfirmed) {
+    console.info(yellow('=> Opening browser to auth application-default login'));
+    await execSyncInherit('gcloud auth application-default login');
+  }
 
   console.info(yellow('=> Terraform init'));
   await terraformInit({ environment });

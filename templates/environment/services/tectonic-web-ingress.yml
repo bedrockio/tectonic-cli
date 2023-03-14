@@ -7,7 +7,7 @@ metadata:
 spec:
   defaultBackend:
     service:
-      name: web-nodeport
+      name: web
       port:
         number: 80
 
@@ -15,11 +15,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-nodeport
+  name: web
   labels:
-    name: web-nodeport
+    name: web
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: web
   ports:
