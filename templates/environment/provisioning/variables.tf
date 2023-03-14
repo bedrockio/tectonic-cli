@@ -1,12 +1,9 @@
-## These variables are set in the ./deployment/scripts/provision script with env values
-## from ./deployment/environments/<environment>/.env
-
 variable "project" {
   default = "tectonic"
 }
 
 variable "environment" {
-  default = "staging"
+  default = "production"
 }
 
 variable "region" {
@@ -17,24 +14,32 @@ variable "zone" {
   default = "c"
 }
 
+variable "multi_region" {
+  default = "US"
+}
+
 variable "bucket_prefix" {
-  default = "tectonic_staging"
+  default = "tectonic-production"
 }
 
 variable "cluster_name" {
   default = "cluster-1"
 }
 
+variable "cluster_description" {
+  default = "GKE Cluster"
+}
+
 variable "node_pool_count" {
-  default = 3
+  default = 1
 }
 
 variable "min_node_count" {
-  default = 3
+  default = 1
 }
 
 variable "max_node_count" {
-  default = 6
+  default = 3
 }
 
 variable "preemptible" {
@@ -42,5 +47,24 @@ variable "preemptible" {
 }
 
 variable "machine_type" {
-  default = "c2-standard-8"
+  default = "n2-standard-2"
+}
+
+variable "buckets" {
+  type = set(string)
+
+  default = [
+    "mongodb-backups",
+    "batches"
+  ]
+}
+
+variable "master_authorizaed_networks_cidr_blocks" {
+  type = list(map(string))
+  default = [
+    {
+      display_name = "All",
+      cidr_block = "0.0.0.0/0"
+    }
+  ]
 }
